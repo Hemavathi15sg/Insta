@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
-//import AICaptionSuggestions from './AICaptionSuggestions';
+import AICaptionSuggestions from './AICaptionSuggestions';
 
 interface CreatePostProps {
   onClose: () => void;
@@ -12,14 +12,12 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
   const [caption, setCaption] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
-  const [showAISuggestions, setShowAISuggestions] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setImage(file);
       setPreview(URL.createObjectURL(file));
-      setShowAISuggestions(false); // Reset AI suggestions when new image is selected
     }
   };
 
@@ -79,14 +77,14 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
           </div>
 
           {/* AI Caption Suggestions Section */}
-          {/*{image && (
+          {image && (
             <div className="mb-4">
               <AICaptionSuggestions
                 imageFile={image}
                 onCaptionSelect={handleCaptionSelect}
               />
             </div>
-          )}*/}
+          )}
 
           {/* Caption Input Section */}
           <div className="mb-4">
