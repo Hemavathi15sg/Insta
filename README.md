@@ -79,6 +79,8 @@ Content-Type: multipart/form-data
 Body:
 - image: File (JPEG, PNG, GIF, WebP)
 
+Rate Limiting: 10 requests per 15 minutes per IP
+
 Response:
 {
   "success": true,
@@ -129,6 +131,7 @@ OPENAI_API_KEY=sk-...
 - **File Size Limit**: 10MB per image
 - **Supported Formats**: JPEG, PNG, GIF, WebP
 - **Response Time**: Typically 1-3 seconds
+- **Rate Limiting**: 10 requests per 15 minutes per IP address
 - **Error Handling**: Comprehensive error messages for common issues
 
 ### Troubleshooting
@@ -137,10 +140,10 @@ OPENAI_API_KEY=sk-...
 - Ensure `OPENAI_API_KEY` is set in `server/.env`
 - Restart the server after adding the API key
 
-**"Rate limit exceeded"**
-- You've hit the OpenAI API rate limit
-- Wait a few moments and try again
-- Consider upgrading your OpenAI plan for higher limits
+**"Rate limit exceeded"** or **"Too many caption generation requests"**
+- You've hit the rate limit (10 requests per 15 minutes per IP)
+- Wait 15 minutes and try again
+- This protects against API abuse and cost overruns
 
 **"File size too large"**
 - Image must be under 10MB

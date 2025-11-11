@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import path from 'path';
+import rateLimit from 'express-rate-limit';
 import { Database } from '../database';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
@@ -41,6 +42,19 @@ const tempUpload = multer({
   }
 });
 
+// Rate limiter for AI caption generation to prevent abuse
+// Allows 10 requests per 15 minutes per IP
+const captionRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 requests per windowMs
+  message: {
+    success: false,
+    error: 'Too many caption generation requests. Please try again in 15 minutes.',
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
 // Get all posts
 router.get('/', (req, res) => {
   const query = `
@@ -60,7 +74,7 @@ router.get('/', (req, res) => {
 });
 
 // Generate caption suggestions for an image
-router.post('/generate-caption', authenticate, tempUpload.single('image'), async (req: AuthRequest, res) => {
+router.post('/generate-caption', captionRateLimiter, authenticate, tempUpload.single('image'), async (req: AuthRequest, res) => {
   try {
     // Validate that an image was uploaded
     if (!req.file) {
