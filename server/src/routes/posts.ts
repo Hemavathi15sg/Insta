@@ -60,7 +60,7 @@ router.get('/', (req, res) => {
 });
 
 // Generate caption suggestions for an image
-/*router.post('/generate-caption', authenticate, tempUpload.single('image'), async (req: AuthRequest, res) => {
+router.post('/generate-caption', authenticate, tempUpload.single('image'), async (req: AuthRequest, res) => {
   try {
     // Validate that an image was uploaded
     if (!req.file) {
@@ -113,7 +113,7 @@ router.get('/', (req, res) => {
       error: error instanceof Error ? error.message : 'An unexpected error occurred'
     });
   }
-});*/
+});
 
 // Create post
 router.post('/', authenticate, upload.single('image'), (req: AuthRequest, res) => {
