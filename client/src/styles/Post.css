@@ -1,0 +1,340 @@
+/* Post Component Styling */
+
+/* Gradient Border Top */
+.post-card {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.post-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #a855f7 0%, #ec4899 50%, #f43f5e 100%);
+  z-index: 1;
+}
+
+.post-card:hover {
+  box-shadow: 0 12px 24px rgba(168, 85, 247, 0.15);
+  transform: translateY(-4px);
+}
+
+/* User Avatar Gradient Border */
+.user-avatar-gradient {
+  position: relative;
+  width: 48px;
+  height: 48px;
+}
+
+.user-avatar-gradient::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.user-avatar-gradient img {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: block;
+  object-fit: cover;
+  border: 3px solid white;
+}
+
+/* Image Container with Overlay */
+.post-image-container {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  overflow: hidden;
+}
+
+.post-image-container img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: block;
+}
+
+.post-image-container:hover img {
+  transform: scale(1.05);
+}
+
+/* Action Buttons */
+.action-button {
+  padding: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-button:hover {
+  transform: scale(1.25);
+}
+
+.action-button.liked {
+  color: #ef4444;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.6));
+}
+
+.action-button.comment {
+  color: #3b82f6;
+}
+
+.action-button:focus {
+  outline: none;
+}
+
+/* Caption Box */
+.caption-box {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+  border-left: 4px solid;
+  border-image: linear-gradient(180deg, #a855f7 0%, #ec4899 100%) 1;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.caption-box .username {
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.caption-box .text {
+  color: #1f2937;
+  margin-top: 8px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Comments Section */
+.comments-section {
+  border-top: 2px solid #e5e7eb;
+  padding-top: 16px;
+  margin-top: 16px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.02) 0%, rgba(236, 72, 153, 0.02) 100%);
+  border-radius: 0 0 16px 16px;
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: -16px;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 16px;
+}
+
+.comments-list {
+  max-height: 224px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  padding-right: 8px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.comment-item:hover {
+  background: white;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #c084fc;
+  flex-shrink: 0;
+}
+
+.comment-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.comment-username {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.comment-text {
+  font-size: 14px;
+  color: #374151;
+  word-break: break-word;
+  margin-left: 8px;
+}
+
+.comment-date {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* Comment Form */
+.comment-form {
+  display: flex;
+  gap: 8px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.comment-input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+.comment-input::placeholder {
+  color: #9ca3af;
+}
+
+.comment-submit {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.comment-submit:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+  transform: translateY(-2px);
+}
+
+.comment-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Scrollbar Styling */
+.comments-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #ec4899 100%);
+  border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9333ea 0%, #db2777 100%);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .post-card::before {
+    height: 3px;
+  }
+
+  .comments-section {
+    margin-left: -16px;
+    margin-right: -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .comment-form {
+    gap: 6px;
+  }
+
+  .comment-submit {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .comment-input {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Delete Button */
+.delete-button {
+  padding: 8px;
+  color: #ef4444;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-button:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Status Indicator */
+.status-indicator {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background: #10b981;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #d1d5db;
+}

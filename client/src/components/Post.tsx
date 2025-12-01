@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import '../styles/Post.css';
 
 interface Comment {
   id: number;
@@ -110,66 +111,78 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   };
 
   return (
-    <div className="card-gradient overflow-hidden">
-      {/* Header - Fixed Height */}
-      <div className="flex items-center justify-between p-4 h-16 border-b border-gray-100">
-        <Link to={`/profile/${post.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition">
-          <img 
-            src={post.avatar || '/default-avatar.png'} 
-            alt={post.username}
-            className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-pink-200"
-          />
-          <div>
-            <span className="font-bold text-gray-800 block">{post.username}</span>
+    <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-t-4 border-gradient-to-r from-purple-500 via-pink-500 to-rose-500">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 hover:bg-gray-50 transition">
+        <Link to={`/profile/${post.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition flex-1">
+          <div className="relative">
+            <img 
+              src={post.avatar || '/default-avatar.png'} 
+              alt={post.username}
+              className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-3 border-gradient-to-r from-purple-400 to-pink-400"
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full"></div>
+          </div>
+          <div className="min-w-0">
+            <span className="font-bold text-gray-900 block">{post.username}</span>
             <span className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString()}</span>
           </div>
         </Link>
         {isOwner && (
-          <button onClick={handleDelete} className="text-red-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition">
+          <button 
+            onClick={handleDelete} 
+            className="text-red-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition duration-200 flex-shrink-0"
+            title="Delete post"
+          >
             <Trash2 size={20} />
           </button>
         )}
       </div>
 
-      {/* Image - Fixed Height with Better Object Fit */}
-      <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+      {/* Image Container */}
+      <div className="w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden relative group">
         <img 
           src={post.image_url} 
           alt={post.caption}
-          className="w-full h-full object-contain"
+          className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/0 to-transparent opacity-0 group-hover:opacity-10 transition-opacity"></div>
       </div>
 
-      {/* Content - Fixed Structure */}
-      <div className="p-4">
+      {/* Content */}
+      <div className="px-6 py-4">
         {/* Action Buttons */}
-        <div className="flex gap-6 mb-4 text-gray-700">
+        <div className="flex gap-6 mb-4 pb-4 border-b border-gray-100">
           <button 
             onClick={handleLike} 
-            className={`transform hover:scale-110 transition-all duration-200 ${liked ? 'text-red-500' : 'hover:text-red-500'}`}
+            className={`transform hover:scale-125 transition-all duration-200 focus:outline-none ${
+              liked 
+                ? 'text-red-500 drop-shadow-lg' 
+                : 'text-gray-700 hover:text-red-500'
+            }`}
             title={liked ? 'Unlike' : 'Like'}
           >
-            <Heart size={28} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
+            <Heart size={32} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
           </button>
           <button 
             onClick={handleCommentToggle} 
-            className="hover:text-blue-500 transform hover:scale-110 transition-all duration-200"
+            className="text-gray-700 hover:text-blue-500 transform hover:scale-125 transition-all duration-200 focus:outline-none"
             title="Comments"
           >
-            <MessageCircle size={28} />
+            <MessageCircle size={32} />
           </button>
         </div>
 
         {/* Likes Count */}
-        <div className="font-bold text-gray-800 mb-3 text-lg">
-          ❤️ <span className="text-pink-600">{likesCount}</span> {likesCount === 1 ? 'like' : 'likes'}
+        <div className="font-bold text-gray-900 mb-4 text-lg bg-gradient-to-r from-red-400 to-pink-500 bg-clip-text text-transparent">
+          ❤️ {likesCount} {likesCount === 1 ? 'like' : 'likes'}
         </div>
         
-        {/* Caption - Max 2 lines with ellipsis */}
+        {/* Caption */}
         {post.caption && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-pink-500">
-            <span className="font-semibold text-gray-800">{post.username}</span>
-            <p className="text-gray-700 mt-1 line-clamp-3">{post.caption}</p>
+          <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-l-4 border-gradient-to-b from-purple-500 to-pink-500">
+            <span className="font-bold text-purple-700">{post.username}</span>
+            <p className="text-gray-800 mt-2 leading-relaxed text-sm break-words">{post.caption}</p>
           </div>
         )}
 
@@ -177,34 +190,34 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
         {comments.length > 0 && !showComments && (
           <button 
             onClick={handleCommentToggle}
-            className="text-purple-600 text-sm mb-3 font-semibold hover:text-purple-700"
+            className="text-blue-600 text-sm mb-3 font-semibold hover:text-blue-700 hover:underline transition"
           >
-            👁️ View all {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
+            💬 View all {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
           </button>
         )}
 
         {/* Comments Section */}
         {showComments && (
-          <div className="mt-4 border-t border-gray-200 pt-4">
+          <div className="mt-4 border-t-2 border-gray-200 pt-4 bg-gray-50 -mx-6 -mb-4 px-6 py-4 rounded-b-2xl">
             {loadingComments ? (
-              <p className="text-gray-500 text-sm text-center py-3">Loading comments...</p>
+              <p className="text-gray-500 text-sm text-center py-4 animate-pulse">Loading comments...</p>
             ) : comments.length === 0 ? (
-              <p className="text-gray-500 text-sm mb-3 text-center">Be the first to comment</p>
+              <p className="text-gray-500 text-sm mb-4 text-center italic">👉 Be the first to comment</p>
             ) : (
-              <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
+              <div className="space-y-3 mb-4 max-h-56 overflow-y-auto pr-2">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
+                  <div key={comment.id} className="flex gap-3 p-3 hover:bg-white rounded-lg transition duration-200">
                     <img 
                       src={comment.avatar || '/default-avatar.png'} 
                       alt={comment.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-purple-200"
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-purple-300"
                     />
                     <div className="flex-1 min-w-0">
-                      <div>
-                        <span className="font-semibold text-sm text-gray-800">{comment.username}</span>
-                        <span className="text-sm text-gray-700 ml-2 break-words">{comment.content}</span>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-semibold text-sm text-gray-900">{comment.username}</span>
+                        <span className="text-sm text-gray-700 break-words">{comment.content}</span>
                       </div>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 mt-1 block">
                         {new Date(comment.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -220,22 +233,18 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
                 placeholder="Add a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="input-modern py-2"
+                className="flex-1 px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200 text-sm"
               />
               <button 
                 type="submit"
-                className="px-4 py-2 btn-primary flex items-center gap-1 whitespace-nowrap"
+                disabled={!newComment.trim()}
+                className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-lg hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-1 whitespace-nowrap"
               >
                 <Send size={16} />
               </button>
             </form>
           </div>
         )}
-
-        {/* Date */}
-        <div className="text-gray-400 text-sm mt-2">
-          {new Date(post.created_at).toLocaleDateString()}
-        </div>
       </div>
     </div>
   );
