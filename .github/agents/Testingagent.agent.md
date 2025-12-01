@@ -9,16 +9,6 @@ tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'usa
 
 ---
 
-## Overview
-
-This guide explains how to use **Agent Mode** to automatically:
-- Generate test cases
-- Write tests
-- Execute tests
-- Generate coverage reports
-
----
-
 ## Setup Instructions
 
 ### 1. Install Testing Dependencies (if not already done)
@@ -33,3 +23,46 @@ Backend tests already have Jest configured in `server/package.json`:
   }
 }
 ```
+
+## Agent Task
+
+Create complete test suite for Follow/Unfollow feature:
+
+Tasks:
+1. Generate unit tests for follow API
+2. Generate integration tests
+3. Generate E2E tests with Cypress
+4. Execute all tests
+5. Generate coverage report
+6. Report results (pass/fail counts)
+
+## Test Files to Create
+
+- server/src/routes/__tests__/follow.test.ts
+- server/src/repositories/__tests__/followRepository.test.ts
+- client/cypress/e2e/follow.cy.ts
+
+## Commands Agent Should Run
+
+npm test -- --coverage
+npx cypress run
+
+## Success Metrics
+
+- All tests pass ✅
+- Coverage >= 80%
+- No console errors
+- E2E tests complete without timeouts
+
+## Expected Test Output
+
+Coverage Report:
+- Lines: XX%
+- Branches: XX%
+- Functions: XX%
+- Statements: XX%
+
+Test Results:
+- Total: XX
+- Passed: XX
+- Failed: 0
