@@ -110,53 +110,66 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="card-gradient overflow-hidden">
       {/* Header - Fixed Height */}
-      <div className="flex items-center p-4 h-16">
-        <Link to={`/profile/${post.user_id}`} className="flex items-center gap-3">
+      <div className="flex items-center justify-between p-4 h-16 border-b border-gray-100">
+        <Link to={`/profile/${post.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition">
           <img 
             src={post.avatar || '/default-avatar.png'} 
             alt={post.username}
-            className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+            className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-pink-200"
           />
-          <span className="font-semibold truncate">{post.username}</span>
+          <div>
+            <span className="font-bold text-gray-800 block">{post.username}</span>
+            <span className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString()}</span>
+          </div>
         </Link>
+        {isOwner && (
+          <button onClick={handleDelete} className="text-red-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition">
+            <Trash2 size={20} />
+          </button>
+        )}
       </div>
 
-           {/* Image - Fixed Height with Better Object Fit */}
-    <div className="w-full h-96 bg-gray-100 flex items-center justify-center overflow-hidden">
-      <img 
-        src={post.image_url} 
-        alt={post.caption}
-        className="w-full h-full object-contain"
-      />
-    </div>
+      {/* Image - Fixed Height with Better Object Fit */}
+      <div className="w-full h-96 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center overflow-hidden">
+        <img 
+          src={post.image_url} 
+          alt={post.caption}
+          className="w-full h-full object-contain"
+        />
+      </div>
 
       {/* Content - Fixed Structure */}
       <div className="p-4">
         {/* Action Buttons */}
-        <div className="flex gap-4 mb-3">
-          <button onClick={handleLike} className={liked ? 'text-red-500' : 'hover:text-gray-600'}>
-            <Heart size={24} fill={liked ? 'currentColor' : 'none'} />
+        <div className="flex gap-6 mb-4 text-gray-700">
+          <button 
+            onClick={handleLike} 
+            className={`transform hover:scale-110 transition-all duration-200 ${liked ? 'text-red-500' : 'hover:text-red-500'}`}
+            title={liked ? 'Unlike' : 'Like'}
+          >
+            <Heart size={28} fill={liked ? 'currentColor' : 'none'} strokeWidth={liked ? 0 : 2} />
           </button>
-          <button onClick={handleCommentToggle} className="hover:text-gray-600">
-            <MessageCircle size={24} />
+          <button 
+            onClick={handleCommentToggle} 
+            className="hover:text-blue-500 transform hover:scale-110 transition-all duration-200"
+            title="Comments"
+          >
+            <MessageCircle size={28} />
           </button>
-          {isOwner && (
-            <button onClick={handleDelete} className="hover:text-red-500 ml-auto">
-              <Trash2 size={24} />
-            </button>
-          )}
         </div>
 
         {/* Likes Count */}
-        <div className="font-semibold mb-2">{likesCount} likes</div>
+        <div className="font-bold text-gray-800 mb-3 text-lg">
+          ❤️ <span className="text-pink-600">{likesCount}</span> {likesCount === 1 ? 'like' : 'likes'}
+        </div>
         
         {/* Caption - Max 2 lines with ellipsis */}
         {post.caption && (
-          <div className="mb-2">
-            <span className="font-semibold mr-2">{post.username}</span>
-            <span className="line-clamp-2">{post.caption}</span>
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border-l-4 border-pink-500">
+            <span className="font-semibold text-gray-800">{post.username}</span>
+            <p className="text-gray-700 mt-1 line-clamp-3">{post.caption}</p>
           </div>
         )}
 
@@ -164,32 +177,32 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
         {comments.length > 0 && !showComments && (
           <button 
             onClick={handleCommentToggle}
-            className="text-gray-500 text-sm mb-2 hover:text-gray-700"
+            className="text-purple-600 text-sm mb-3 font-semibold hover:text-purple-700"
           >
-            View all {comments.length} comments
+            👁️ View all {comments.length} {comments.length === 1 ? 'comment' : 'comments'}
           </button>
         )}
 
         {/* Comments Section */}
         {showComments && (
-          <div className="mt-4 border-t pt-4">
+          <div className="mt-4 border-t border-gray-200 pt-4">
             {loadingComments ? (
-              <p className="text-gray-500 text-sm">Loading comments...</p>
+              <p className="text-gray-500 text-sm text-center py-3">Loading comments...</p>
             ) : comments.length === 0 ? (
-              <p className="text-gray-500 text-sm mb-3">No comments yet</p>
+              <p className="text-gray-500 text-sm mb-3 text-center">Be the first to comment</p>
             ) : (
               <div className="space-y-3 mb-4 max-h-48 overflow-y-auto">
                 {comments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3">
+                  <div key={comment.id} className="flex gap-3 p-2 hover:bg-gray-50 rounded-lg transition">
                     <img 
                       src={comment.avatar || '/default-avatar.png'} 
                       alt={comment.username}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-purple-200"
                     />
                     <div className="flex-1 min-w-0">
                       <div>
-                        <span className="font-semibold text-sm mr-2">{comment.username}</span>
-                        <span className="text-sm break-words">{comment.content}</span>
+                        <span className="font-semibold text-sm text-gray-800">{comment.username}</span>
+                        <span className="text-sm text-gray-700 ml-2 break-words">{comment.content}</span>
                       </div>
                       <span className="text-xs text-gray-400">
                         {new Date(comment.created_at).toLocaleDateString()}
@@ -207,11 +220,11 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
                 placeholder="Add a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                className="input-modern py-2"
               />
               <button 
                 type="submit"
-                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center gap-2"
+                className="px-4 py-2 btn-primary flex items-center gap-1 whitespace-nowrap"
               >
                 <Send size={16} />
               </button>
