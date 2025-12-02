@@ -174,6 +174,106 @@ router.delete('/:id', authenticate, (req: AuthRequest, res) => {
   );
 });
 
+// Edit caption - Update caption for a post
+router.put('/:id/caption', authenticate, (req: AuthRequest, res) => {
+  const postId = req.params.id;
+  const { caption } = req.body;
+
+  // Validate caption input (allow empty string to clear caption)
+  if (caption == null) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Caption is required' 
+    });
+  }
+
+  // Check if user owns the post
+  db.get(
+    'SELECT * FROM posts WHERE id = ? AND user_id = ?',
+    [postId, req.userId],
+    (err, post) => {
+      if (err) {
+        return res.status(500).json({ 
+          success: false,
+          error: 'Server error' 
+        });
+      }
+      
+      if (!post) {
+        return res.status(404).json({ 
+          success: false,
+          error: 'Post not found or unauthorized' 
+        });
+      }
+
+      // Update the caption
+      db.run(
+        'UPDATE posts SET caption = ? WHERE id = ?',
+        [caption, postId],
+        (err) => {
+          if (err) {
+            console.error('Error updating caption:', err);
+            return res.status(500).json({ 
+              success: false,
+              error: 'Server error' 
+            });
+          }
+          res.json({ 
+            success: true,
+            message: 'Caption updated successfully',
+            caption 
+          });
+        }
+      );
+    }
+  );
+});
+
+// Delete caption - Remove caption from a post
+router.delete('/:id/caption', authenticate, (req: AuthRequest, res) => {
+  const postId = req.params.id;
+
+  // Check if user owns the post
+  db.get(
+    'SELECT * FROM posts WHERE id = ? AND user_id = ?',
+    [postId, req.userId],
+    (err, post) => {
+      if (err) {
+        return res.status(500).json({ 
+          success: false,
+          error: 'Server error' 
+        });
+      }
+      
+      if (!post) {
+        return res.status(404).json({ 
+          success: false,
+          error: 'Post not found or unauthorized' 
+        });
+      }
+
+      // Set caption to empty string
+      db.run(
+        'UPDATE posts SET caption = ? WHERE id = ?',
+        ['', postId],
+        (err) => {
+          if (err) {
+            console.error('Error deleting caption:', err);
+            return res.status(500).json({ 
+              success: false,
+              error: 'Server error' 
+            });
+          }
+          res.json({ 
+            success: true,
+            message: 'Caption deleted successfully'
+          });
+        }
+      );
+    }
+  );
+});
+
 // Like/Unlike post
 router.post('/:id/like', authenticate, (req: AuthRequest, res) => {
   const postId = req.params.id;
