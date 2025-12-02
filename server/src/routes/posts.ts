@@ -179,8 +179,8 @@ router.put('/:id/caption', authenticate, (req: AuthRequest, res) => {
   const postId = req.params.id;
   const { caption } = req.body;
 
-  // Validate caption input
-  if (caption === undefined || caption === null) {
+  // Validate caption input (allow empty string to clear caption)
+  if (caption == null) {
     return res.status(400).json({ 
       success: false,
       error: 'Caption is required' 
@@ -212,9 +212,10 @@ router.put('/:id/caption', authenticate, (req: AuthRequest, res) => {
         [caption, postId],
         (err) => {
           if (err) {
+            console.error('Error updating caption:', err);
             return res.status(500).json({ 
               success: false,
-              error: 'Failed to update caption' 
+              error: 'Server error' 
             });
           }
           res.json({ 
@@ -257,9 +258,10 @@ router.delete('/:id/caption', authenticate, (req: AuthRequest, res) => {
         ['', postId],
         (err) => {
           if (err) {
+            console.error('Error deleting caption:', err);
             return res.status(500).json({ 
               success: false,
-              error: 'Failed to delete caption' 
+              error: 'Server error' 
             });
           }
           res.json({ 

@@ -244,7 +244,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
         </div>
         
         {/* Caption */}
-        {currentCaption && (
+        {(currentCaption || isOwner) && (
           <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-l-4 border-gradient-to-b from-purple-500 to-pink-500 relative">
             <div className="flex justify-between items-start gap-2 mb-2">
               <span className="font-bold text-purple-700">{post.username}</span>
@@ -296,8 +296,10 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
                   </button>
                 </div>
               </div>
-            ) : (
+            ) : currentCaption ? (
               <p className="text-gray-800 mt-2 leading-relaxed text-sm break-words">{currentCaption}</p>
+            ) : (
+              <p className="text-gray-400 mt-2 leading-relaxed text-sm italic">No caption</p>
             )}
           </div>
         )}
