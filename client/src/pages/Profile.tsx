@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import FollowButton from '../components/FollowButton';
+import FollowersList from '../components/FollowersList';
 
 const Profile: React.FC = () => {
   const { userId } = useParams();
   const [user, setUser] = useState<any>(null);
+  const [showFollowers, setShowFollowers] = useState(false);
   const currentUserId = parseInt(localStorage.getItem('userId') || '0');
   const isOwnProfile = currentUserId === parseInt(userId || '0');
 
@@ -35,8 +37,15 @@ const Profile: React.FC = () => {
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
             <p className="text-gray-600 mb-4">{user.bio || 'No bio yet'}</p>
-            <div className="flex gap-8 items-center">
+            <div className="flex gap-8 items-center flex-wrap">
               <div><span className="font-bold">{user.posts?.length || 0}</span> posts</div>
+              <button
+                onClick={() => setShowFollowers(true)}
+                className="hover:text-pink-600 transition-colors cursor-pointer"
+              >
+                <span className="font-bold text-gray-900">0</span>
+                <span className="text-gray-600"> followers</span>
+              </button>
               {!isOwnProfile && (
                 <FollowButton 
                   userId={currentUserId}
@@ -47,6 +56,13 @@ const Profile: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {showFollowers && (
+        <FollowersList 
+          userId={parseInt(userId || '0')}
+          onClose={() => setShowFollowers(false)}
+        />
+      )}
 
       <div className="grid grid-cols-3 gap-4">
         {user.posts?.map((post: any) => (
