@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import FollowButton from '../components/FollowButton';
 
 const Profile: React.FC = () => {
   const { userId } = useParams();
   const [user, setUser] = useState<any>(null);
+  const currentUserId = parseInt(localStorage.getItem('userId') || '0');
+  const isOwnProfile = currentUserId === parseInt(userId || '0');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -29,11 +32,17 @@ const Profile: React.FC = () => {
             alt={user.username}
             className="w-32 h-32 rounded-full object-cover"
           />
-          <div>
+          <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
             <p className="text-gray-600 mb-4">{user.bio || 'No bio yet'}</p>
-            <div className="flex gap-8">
+            <div className="flex gap-8 items-center">
               <div><span className="font-bold">{user.posts?.length || 0}</span> posts</div>
+              {!isOwnProfile && (
+                <FollowButton 
+                  userId={currentUserId}
+                  targetUserId={parseInt(userId || '0')}
+                />
+              )}
             </div>
           </div>
         </div>
