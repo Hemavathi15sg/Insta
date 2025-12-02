@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
+import { Heart, MessageCircle, Trash2, Send, Edit2, X, Check } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import '../styles/Post.css';
 
@@ -34,6 +34,12 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  
+  // Caption edit state
+  const [isEditingCaption, setIsEditingCaption] = useState(false);
+  const [editedCaption, setEditedCaption] = useState(post.caption);
+  const [currentCaption, setCurrentCaption] = useState(post.caption);
+  const [savingCaption, setSavingCaption] = useState(false);
   
   const currentUserId = parseInt(localStorage.getItem('userId') || '0');
   const isOwner = currentUserId === post.user_id;
@@ -110,6 +116,65 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
     }
   };
 
+  const handleEditCaption = () => {
+    setIsEditingCaption(true);
+    setEditedCaption(currentCaption);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingCaption(false);
+    setEditedCaption(currentCaption);
+  };
+
+  const handleSaveCaption = async () => {
+    if (editedCaption === currentCaption) {
+      setIsEditingCaption(false);
+      return;
+    }
+
+    setSavingCaption(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `/api/posts/${post.id}/caption`,
+        { caption: editedCaption },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        setCurrentCaption(editedCaption);
+        setIsEditingCaption(false);
+      }
+    } catch (err) {
+      console.error('Failed to update caption', err);
+      alert('Failed to update caption. Please try again.');
+    } finally {
+      setSavingCaption(false);
+    }
+  };
+
+  const handleDeleteCaption = async () => {
+    if (!window.confirm('Are you sure you want to delete this caption?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.delete(
+        `/api/posts/${post.id}/caption`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        setCurrentCaption('');
+        setEditedCaption('');
+      }
+    } catch (err) {
+      console.error('Failed to delete caption', err);
+      alert('Failed to delete caption. Please try again.');
+    }
+  };
+
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-t-4 border-gradient-to-r from-purple-500 via-pink-500 to-rose-500">
       {/* Header */}
@@ -179,10 +244,61 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
         </div>
         
         {/* Caption */}
-        {post.caption && (
-          <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-l-4 border-gradient-to-b from-purple-500 to-pink-500">
-            <span className="font-bold text-purple-700">{post.username}</span>
-            <p className="text-gray-800 mt-2 leading-relaxed text-sm break-words">{post.caption}</p>
+        {currentCaption && (
+          <div className="mb-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-l-4 border-gradient-to-b from-purple-500 to-pink-500 relative">
+            <div className="flex justify-between items-start gap-2 mb-2">
+              <span className="font-bold text-purple-700">{post.username}</span>
+              {isOwner && !isEditingCaption && (
+                <div className="flex gap-1">
+                  <button
+                    onClick={handleEditCaption}
+                    className="text-blue-500 hover:text-blue-600 hover:bg-blue-50 p-1 rounded transition"
+                    title="Edit caption"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={handleDeleteCaption}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50 p-1 rounded transition"
+                    title="Delete caption"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {isEditingCaption ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editedCaption}
+                  onChange={(e) => setEditedCaption(e.target.value)}
+                  className="w-full p-2 border-2 border-purple-300 rounded-lg resize-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-sm"
+                  rows={3}
+                  disabled={savingCaption}
+                />
+                <div className="flex gap-2 justify-end">
+                  <button
+                    onClick={handleCancelEdit}
+                    disabled={savingCaption}
+                    className="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 disabled:opacity-50 transition flex items-center gap-1"
+                  >
+                    <X size={14} />
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveCaption}
+                    disabled={savingCaption}
+                    className="px-3 py-1 text-sm bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:shadow-lg disabled:opacity-50 transition flex items-center gap-1"
+                  >
+                    <Check size={14} />
+                    {savingCaption ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-800 mt-2 leading-relaxed text-sm break-words">{currentCaption}</p>
+            )}
           </div>
         )}
 
