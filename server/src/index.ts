@@ -5,6 +5,7 @@ import { Database } from './database';
 import authRoutes from './routes/auth';
 import postRoutes from './routes/posts';
 import userRoutes from './routes/users';
+import followRoutes from './routes/follow';
 
 // IMPORTANT: Load environment variables FIRST before any other code
 dotenv.config();
@@ -28,6 +29,7 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/users', followRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Instagram Lite API is running' });
