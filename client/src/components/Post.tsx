@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo, memo } from 'react';
 import axios from 'axios';
 import { Heart, MessageCircle, Trash2, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -34,23 +34,26 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [commentsFetched, setCommentsFetched] = useState(false);
   
-  const currentUserId = parseInt(localStorage.getItem('userId') || '0');
-  const isOwner = currentUserId === post.user_id;
+  // Memoize current user ID to avoid parsing on every render
+  const currentUserId = useMemo(() => parseInt(localStorage.getItem('userId') || '0'), []);
+  const isOwner = useMemo(() => currentUserId === post.user_id, [currentUserId, post.user_id]);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     setLoadingComments(true);
     try {
       const response = await axios.get(`/api/posts/${post.id}/comments`);
       setComments(response.data);
+      setCommentsFetched(true);
     } catch (err) {
       console.error('Failed to fetch comments', err);
     } finally {
       setLoadingComments(false);
     }
-  };
+  }, [post.id]);
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(`/api/posts/${post.id}/like`, {}, {
@@ -61,9 +64,9 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
     } catch (err) {
       console.error('Failed to like post', err);
     }
-  };
+  }, [post.id, liked, likesCount]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!window.confirm('Are you sure you want to delete this post?')) {
       return;
     }
@@ -81,16 +84,17 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
       console.error('Failed to delete post', err);
       alert('Failed to delete post. Please try again.');
     }
-  };
+  }, [post.id, onDelete]);
 
-  const handleCommentToggle = () => {
-    if (!showComments) {
+  const handleCommentToggle = useCallback(() => {
+    if (!showComments && !commentsFetched) {
+      // Fetch comments only if we haven't fetched them before
       fetchComments();
     }
     setShowComments(!showComments);
-  };
+  }, [showComments, commentsFetched, fetchComments]);
 
-  const handleAddComment = async (e: React.FormEvent) => {
+  const handleAddComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
@@ -108,7 +112,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
       console.error('Failed to add comment', err);
       alert('Failed to add comment. Please try again.');
     }
-  };
+  }, [newComment, post.id, fetchComments]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-t-4 border-gradient-to-r from-purple-500 via-pink-500 to-rose-500">
@@ -144,6 +148,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
         <img 
           src={post.image_url} 
           alt={post.caption}
+          loading="lazy"
           className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/0 to-transparent opacity-0 group-hover:opacity-10 transition-opacity"></div>
@@ -250,4 +255,5 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   );
 };
 
-export default Post;
+// Memoize the Post component to prevent unnecessary re-renders
+export default memo(Post);

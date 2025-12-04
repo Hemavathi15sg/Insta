@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import axios from 'axios';
 import Post from '../components/Post';
 import CreatePost from '../components/CreatePost';
@@ -15,15 +15,35 @@ interface PostType {
   created_at: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 const Feed: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (page: number = 1) => {
     try {
-      const response = await axios.get('/api/posts');
-      setPosts(response.data);
+      setLoading(true);
+      const response = await axios.get(`/api/posts?page=${page}&limit=20`);
+      
+      // Handle both old and new API response formats
+      if (response.data.posts) {
+        // New paginated format
+        setPosts(response.data.posts);
+        setPagination(response.data.pagination);
+      } else {
+        // Old format (backward compatibility)
+        setPosts(response.data);
+        setPagination(null);
+      }
     } catch (err) {
       console.error('Failed to fetch posts', err);
     } finally {
@@ -31,13 +51,14 @@ const Feed: React.FC = () => {
     }
   };
 
-  const handlePostDeleted = (postId: number) => {
-    setPosts(posts.filter(post => post.id !== postId));
-  };
+  const handlePostDeleted = useCallback((postId: number) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  }, []);
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    // Fetch posts on initial mount only
+    fetchPosts(1);
+  }, []); // Empty dependency array is intentional - only run on mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 pt-20 pb-8">
@@ -53,7 +74,7 @@ const Feed: React.FC = () => {
       {showCreatePost && (
         <CreatePost 
           onClose={() => setShowCreatePost(false)} 
-          onPostCreated={fetchPosts}
+          onPostCreated={() => fetchPosts(1)}
         />
       )}
 
@@ -90,9 +111,17 @@ const Feed: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Pagination Info */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 text-center text-gray-600">
+            <p>Page {pagination.page} of {pagination.totalPages}</p>
+            <p className="text-sm">{pagination.total} total posts</p>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default Feed;
+export default memo(Feed);

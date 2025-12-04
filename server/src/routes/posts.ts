@@ -55,21 +55,61 @@ const captionRateLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-// Get all posts
-router.get('/', (req, res) => {
+// Rate limiter for general API requests to prevent abuse
+// Allows 100 requests per 15 minutes per IP
+const apiRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests. Please try again later.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Get all posts with pagination
+router.get('/', apiRateLimiter, (req, res) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = (page - 1) * limit;
+
   const query = `
     SELECT posts.*, users.username, users.avatar,
            (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) as likes_count
     FROM posts
     JOIN users ON posts.user_id = users.id
     ORDER BY posts.created_at DESC
+    LIMIT ? OFFSET ?
   `;
 
-  db.all(query, [], (err, posts) => {
+  const countQuery = `SELECT COUNT(*) as total FROM posts`;
+
+  // Get total count for pagination metadata
+  db.get(countQuery, [], (err, result: any) => {
     if (err) {
       return res.status(500).json({ error: 'Server error' });
     }
-    res.json(posts);
+
+    // Get paginated posts
+    db.all(query, [limit, offset], (err, posts) => {
+      if (err) {
+        return res.status(500).json({ error: 'Server error' });
+      }
+      
+      const total = result.total;
+      const totalPages = Math.ceil(total / limit);
+      
+      res.json({
+        posts,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasMore: page < totalPages
+        }
+      });
+    });
   });
 });
 
@@ -159,16 +199,41 @@ router.delete('/:id', authenticate, (req: AuthRequest, res) => {
         return res.status(404).json({ error: 'Post not found or unauthorized' });
       }
 
-      // Delete related likes and comments first
-      db.run('DELETE FROM likes WHERE post_id = ?', [postId]);
-      db.run('DELETE FROM comments WHERE post_id = ?', [postId]);
+      // Use transaction to delete related data atomically
+      let responseSent = false;
       
-      // Delete the post
-      db.run('DELETE FROM posts WHERE id = ?', [postId], (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Failed to delete post' });
-        }
-        res.json({ message: 'Post deleted successfully' });
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+        
+        db.run('DELETE FROM likes WHERE post_id = ?', [postId], (err) => {
+          if (err && !responseSent) {
+            responseSent = true;
+            db.run('ROLLBACK');
+            return res.status(500).json({ error: 'Failed to delete post' });
+          }
+          
+          db.run('DELETE FROM comments WHERE post_id = ?', [postId], (err) => {
+            if (err && !responseSent) {
+              responseSent = true;
+              db.run('ROLLBACK');
+              return res.status(500).json({ error: 'Failed to delete post' });
+            }
+            
+            db.run('DELETE FROM posts WHERE id = ?', [postId], (err) => {
+              if (err && !responseSent) {
+                responseSent = true;
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: 'Failed to delete post' });
+              }
+              
+              if (!responseSent) {
+                responseSent = true;
+                db.run('COMMIT');
+                res.json({ message: 'Post deleted successfully' });
+              }
+            });
+          });
+        });
       });
     }
   );

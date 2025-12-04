@@ -72,7 +72,33 @@ export class Database {
           FOREIGN KEY (post_id) REFERENCES posts(id)
         )
       `);
+
+      // Create indexes for performance optimization
+      this.createIndexes();
     });
+  }
+
+  /**
+   * Create database indexes to optimize query performance
+   */
+  private createIndexes(): void {
+    // Index for posts by user_id (used in user profile queries)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_posts_user_id ON posts(user_id)`);
+    
+    // Index for posts by created_at (used in feed ordering)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_posts_created_at ON posts(created_at DESC)`);
+    
+    // Index for likes by post_id (used to count likes per post)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id)`);
+    
+    // Index for likes by user_id and post_id (used to check if user liked a post)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_likes_user_post ON likes(user_id, post_id)`);
+    
+    // Index for comments by post_id (used to fetch comments for a post)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_comments_post_id ON comments(post_id)`);
+    
+    // Index for comments by user_id (used in JOIN operations)
+    this.db.run(`CREATE INDEX IF NOT EXISTS idx_comments_user_id ON comments(user_id)`);
   }
 
   /**
