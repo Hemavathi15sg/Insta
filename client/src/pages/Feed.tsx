@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import axios from 'axios';
 import Post from '../components/Post';
 import CreatePost from '../components/CreatePost';
@@ -14,67 +14,82 @@ interface PostType {
   created_at: string;
 }
 
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 const Feed: React.FC = () => {
   const [posts, setPosts] = useState<PostType[]>([]);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async (page: number = 1) => {
     try {
-      const response = await axios.get('/api/posts');
-      setPosts(response.data);
+      setLoading(true);
+      const response = await axios.get(`/api/posts?page=${page}&limit=20`);
+      
+      // Handle both old and new API response formats
+      if (response.data.posts) {
+        // New paginated format
+        setPosts(response.data.posts);
+        setPagination(response.data.pagination);
+      } else {
+        // Old format (backward compatibility)
+        setPosts(response.data);
+        setPagination(null);
+      }
     } catch (err) {
       console.error('Failed to fetch posts', err);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const handlePostDeleted = (postId: number) => {
-    setPosts(posts.filter(post => post.id !== postId));
-  };
+  const handlePostDeleted = useCallback((postId: number) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  }, []);
+
+  const handlePostCreated = useCallback(() => {
+    fetchPosts(1);
+    setShowCreatePost(false);
+  }, [fetchPosts]);
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50" style={{
-      backgroundImage: `
-        radial-gradient(circle at 20% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 0%, rgba(251, 146, 60, 0.08) 0%, transparent 60%)
-      `,
-      backgroundAttachment: 'fixed'
-    }}>
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-200 to-transparent rounded-full opacity-20 blur-3xl animate-blob"></div>
-        <div className="absolute top-40 right-0 w-96 h-96 bg-gradient-to-br from-pink-200 to-transparent rounded-full opacity-20 blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-gradient-to-br from-orange-200 to-transparent rounded-full opacity-20 blur-3xl animate-blob animation-delay-4000"></div>
-      </div>
-
-      {/* Header Section */}
-      <div className="sticky top-16 z-40 bg-gradient-to-r from-purple-600 via-pink-500 to-rose-500 shadow-lg backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold text-white tracking-wider">
-              ✨ Your Feed
-            </h1>
-            <button
-              onClick={() => setShowCreatePost(true)}
-              className="bg-white text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 hover:scale-110 transition-transform px-4 py-2 rounded-lg font-bold flex items-center gap-2"
-            >
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10.5 1.5H9.5V9.5H1.5v1h8V18.5h1v-8h8v-1h-8V1.5z" clipRule="evenodd" />
-              </svg>
-              <span className="text-white">New Post</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
+    <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50">
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-4 py-8 pb-20 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 py-8 pb-20 relative z-10 pt-20">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            ✨ Your Feed
+          </h1>
+          <button
+            onClick={() => setShowCreatePost(true)}
+            className="mt-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition"
+          >
+            Create Post
+          </button>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <p className="mt-4 text-gray-600">Loading posts...</p>
+          </div>
+        )}
+
         {/* Empty State */}
-        {posts.length === 0 && !showCreatePost && (
+        {!loading && posts.length === 0 && (
           <div className="mt-16 text-center">
             <div className="inline-block mb-6 backdrop-blur-sm bg-white/80 p-12 rounded-2xl shadow-xl border border-white/20">
               <div className="text-6xl mb-4">📸</div>
@@ -82,91 +97,37 @@ const Feed: React.FC = () => {
                 No posts yet
               </h2>
               <p className="text-gray-600 mb-8">Start by creating your first post!</p>
-              <button
-                onClick={() => setShowCreatePost(true)}
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition"
-              >
-                Create Post
-              </button>
             </div>
           </div>
         )}
 
         {/* Posts Feed */}
-        {posts.length > 0 && (
+        {!loading && posts.length > 0 && (
           <div className="space-y-6">
-            {posts.map((post, index) => (
-              <div
-                key={post.id}
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <Post post={post} onDelete={handlePostDeleted} />
-              </div>
+            {posts.map((post) => (
+              <Post key={post.id} post={post} onDelete={handlePostDeleted} />
             ))}
           </div>
         )}
-      </div>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setShowCreatePost(true)}
-        className="fixed bottom-8 right-8 bg-gradient-to-r from-purple-500 via-pink-500 to-rose-500 text-white p-4 rounded-full shadow-2xl hover:shadow-3xl hover:scale-110 transition-all z-50 group"
-      >
-        <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+        {/* Pagination Info */}
+        {pagination && pagination.totalPages > 1 && (
+          <div className="mt-8 text-center text-gray-600">
+            <p>Page {pagination.page} of {pagination.totalPages}</p>
+            <p className="text-sm">{pagination.total} total posts</p>
+          </div>
+        )}
+      </div>
 
       {/* Create Post Modal */}
       {showCreatePost && (
         <CreatePost 
           onClose={() => setShowCreatePost(false)} 
-          onPostCreated={fetchPosts}
+          onPostCreated={handlePostCreated}
         />
       )}
-
-      <style>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.5s ease-out forwards;
-        }
-
-        @keyframes blob {
-          0%, 100% {
-            transform: translate(0, 0) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-        }
-
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 };
 
-export default Feed;
+export default memo(Feed);

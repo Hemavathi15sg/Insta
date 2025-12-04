@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import compression from 'compression';
 import { Database } from './database';
 import authRoutes from './routes/auth';
 import postRoutes from './routes/posts';
@@ -21,8 +22,27 @@ Database.getInstance();
 
 // Middleware
 app.use(cors());
+app.use(compression()); // Enable gzip/brotli compression for all responses
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+
+// Add cache control headers for static assets
+app.use('/uploads', express.static('uploads', {
+  maxAge: '1y', // Cache images for 1 year
+  etag: true,
+  lastModified: true
+}));
+
+// Add cache control middleware for API responses
+app.use('/api', (req, res, next) => {
+  // Don't cache authenticated endpoints
+  if (req.headers.authorization) {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  } else {
+    // Cache public endpoints briefly
+    res.set('Cache-Control', 'public, max-age=60');
+  }
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);

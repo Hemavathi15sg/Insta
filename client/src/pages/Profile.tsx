@@ -1,24 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  avatar: string;
+  bio: string;
+  created_at: string;
+  posts?: any[];
+}
+
 const Profile: React.FC = () => {
   const { userId } = useParams();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`/api/users/${userId}`);
         setUser(response.data);
       } catch (err) {
         console.error('Failed to fetch user', err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchUser();
+    
+    if (userId) {
+      fetchUser();
+    }
   }, [userId]);
 
-  if (!user) return <div className="text-center mt-20">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="text-center mt-20">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        <p className="mt-4 text-gray-600">Loading profile...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="text-center mt-20">
+        <p className="text-gray-600">User not found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto pt-20 pb-8 px-4">
@@ -27,6 +59,7 @@ const Profile: React.FC = () => {
           <img 
             src={user.avatar || '/default-avatar.png'} 
             alt={user.username}
+            loading="lazy"
             className="w-32 h-32 rounded-full object-cover"
           />
           <div>
@@ -45,6 +78,7 @@ const Profile: React.FC = () => {
             <img 
               src={post.image_url} 
               alt={post.caption}
+              loading="lazy"
               className="w-full h-full object-cover rounded-lg"
             />
           </div>
@@ -54,4 +88,4 @@ const Profile: React.FC = () => {
   );
 };
 
-export default Profile;
+export default memo(Profile);
