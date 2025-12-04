@@ -72,6 +72,21 @@ export class Database {
           FOREIGN KEY (post_id) REFERENCES posts(id)
         )
       `);
+
+      // User follows table (for follow/unfollow feature)
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS user_follows (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          follower_id INTEGER NOT NULL,
+          following_id INTEGER NOT NULL,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+          FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE,
+          UNIQUE(follower_id, following_id),
+          CHECK (follower_id != following_id)
+        )
+      `);
     });
   }
 
@@ -81,6 +96,27 @@ export class Database {
    */
   private runMigrations(): void {
     this.db.serialize(() => {
+      // Create indexes for user_follows table for performance optimization
+      this.db.run(`
+        CREATE INDEX IF NOT EXISTS idx_user_follows_following_id 
+        ON user_follows(following_id, created_at DESC)
+      `);
+
+      this.db.run(`
+        CREATE INDEX IF NOT EXISTS idx_user_follows_follower_id 
+        ON user_follows(follower_id, created_at DESC)
+      `);
+
+      this.db.run(`
+        CREATE INDEX IF NOT EXISTS idx_user_follows_relationship 
+        ON user_follows(follower_id, following_id)
+      `);
+
+      this.db.run(`
+        CREATE INDEX IF NOT EXISTS idx_user_follows_created_at 
+        ON user_follows(created_at DESC)
+      `);
+
       // Check if ai_caption column exists in posts table
       this.db.all(`PRAGMA table_info(posts)`, [], (err, columns: any[]) => {
         if (err) {
