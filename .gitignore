@@ -35,8 +35,3 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Test coverage
-coverage/
-.nyc_output/
-*.lcov
