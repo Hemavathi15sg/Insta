@@ -1331,9 +1331,42 @@ Questions?"
 - [ ] Answer questions about implementation choices
 
 ---
+# Figma Design Prompt
 Figma UI Design Prompt:
 
 Get design specs from Figma file DRhWvORmaprsg0phYLV2za, node 0-1 for a bio details modal showing username, email, and bio text. Include layout, colors, typography, spacing, and component styles.
+# Profile Picture Upload Feature
 
-**End of Training Script**
+
+
+Github MCP
+
+Create a GitHub issue in the Hemavathi15sg/Insta repository with the following details:
+
+Title: "Add Profile Picture Upload with Default Avatar"
+
+Description:
+## Overview
+Allow users to upload and update profile pictures. Show default avatar if no picture is uploaded.
+
+## Requirements
+- Upload/update profile picture from profile page
+- Display uploaded picture in profile and navbar
+- Show default avatar (/default-avatar.png) if no picture uploaded
+- File validation (image types, size limit)
+- Persist after page refresh
+
+## Technical
+- POST /api/users/me/avatar endpoint for uploads
+- Update users table avatar field
+- Update Profile.tsx and Navbar.tsx to display avatar
+- Add error handling
+
+## Done When
+- ✅ User can upload profile picture
+- ✅ Picture displays in profile & navbar
+- ✅ Default avatar shown if none uploaded
+- ✅ No existing features broken
+
+Labels: enhancement, UI/UX
 
