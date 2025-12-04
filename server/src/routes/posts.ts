@@ -200,29 +200,37 @@ router.delete('/:id', authenticate, (req: AuthRequest, res) => {
       }
 
       // Use transaction to delete related data atomically
+      let responseSent = false;
+      
       db.serialize(() => {
         db.run('BEGIN TRANSACTION');
         
         db.run('DELETE FROM likes WHERE post_id = ?', [postId], (err) => {
-          if (err) {
+          if (err && !responseSent) {
+            responseSent = true;
             db.run('ROLLBACK');
             return res.status(500).json({ error: 'Failed to delete post' });
           }
           
           db.run('DELETE FROM comments WHERE post_id = ?', [postId], (err) => {
-            if (err) {
+            if (err && !responseSent) {
+              responseSent = true;
               db.run('ROLLBACK');
               return res.status(500).json({ error: 'Failed to delete post' });
             }
             
             db.run('DELETE FROM posts WHERE id = ?', [postId], (err) => {
-              if (err) {
+              if (err && !responseSent) {
+                responseSent = true;
                 db.run('ROLLBACK');
                 return res.status(500).json({ error: 'Failed to delete post' });
               }
               
-              db.run('COMMIT');
-              res.json({ message: 'Post deleted successfully' });
+              if (!responseSent) {
+                responseSent = true;
+                db.run('COMMIT');
+                res.json({ message: 'Post deleted successfully' });
+              }
             });
           });
         });

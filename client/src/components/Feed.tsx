@@ -56,9 +56,28 @@ const Feed: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    fetchPosts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // Fetch posts on initial mount only
+    const loadInitialPosts = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`/api/posts?page=1&limit=20`);
+        
+        if (response.data.posts) {
+          setPosts(response.data.posts);
+          setPagination(response.data.pagination);
+        } else {
+          setPosts(response.data);
+          setPagination(null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch posts', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadInitialPosts();
+  }, []); // Empty dependency array is intentional - only run on mount
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 pt-20 pb-8">

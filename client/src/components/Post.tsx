@@ -34,6 +34,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loadingComments, setLoadingComments] = useState(false);
+  const [commentsFetched, setCommentsFetched] = useState(false);
   
   // Memoize current user ID to avoid parsing on every render
   const currentUserId = useMemo(() => parseInt(localStorage.getItem('userId') || '0'), []);
@@ -44,6 +45,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
     try {
       const response = await axios.get(`/api/posts/${post.id}/comments`);
       setComments(response.data);
+      setCommentsFetched(true);
     } catch (err) {
       console.error('Failed to fetch comments', err);
     } finally {
@@ -85,12 +87,12 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   }, [post.id, onDelete]);
 
   const handleCommentToggle = useCallback(() => {
-    if (!showComments && comments.length === 0) {
-      // Fetch comments only if we don't have them cached
+    if (!showComments && !commentsFetched) {
+      // Fetch comments only if we haven't fetched them before
       fetchComments();
     }
     setShowComments(!showComments);
-  }, [showComments, comments.length, fetchComments]);
+  }, [showComments, commentsFetched, fetchComments]);
 
   const handleAddComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
