@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Home, User, LogOut, Camera } from 'lucide-react';
+import { Home, LogOut, Camera } from 'lucide-react';
 
 interface NavbarProps {
   setIsAuthenticated: (value: boolean) => void;
@@ -27,8 +27,12 @@ const Navbar: React.FC<NavbarProps> = ({ setIsAuthenticated }) => {
           <Link to="/" className="hover:text-gray-600">
             <Home size={24} />
           </Link>
-          <Link to={`/profile/${user.id}`} className="hover:text-gray-600">
-            <User size={24} />
+          <Link to={`/profile/${user.id}`} className="hover:opacity-80">
+            <img 
+              src={user.avatar || '/default-avatar.png'} 
+              alt={user.username || 'User'}
+              className="w-8 h-8 rounded-full object-cover"
+            />
           </Link>
           <button onClick={handleLogout} className="hover:text-gray-600">
             <LogOut size={24} />
