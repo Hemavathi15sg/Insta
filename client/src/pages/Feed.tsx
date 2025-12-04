@@ -28,7 +28,7 @@ const Feed: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
-  const fetchPosts = useCallback(async (page: number = 1) => {
+  const fetchPosts = async (page: number = 1) => {
     try {
       setLoading(true);
       const response = await axios.get(`/api/posts?page=${page}&limit=20`);
@@ -48,20 +48,21 @@ const Feed: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   const handlePostDeleted = useCallback((postId: number) => {
     setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
   }, []);
 
-  const handlePostCreated = useCallback(() => {
+  const handlePostCreated = () => {
     fetchPosts(1);
     setShowCreatePost(false);
-  }, [fetchPosts]);
+  };
 
   useEffect(() => {
     fetchPosts();
-  }, [fetchPosts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-purple-50 to-pink-50">

@@ -40,11 +40,6 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   const isOwner = useMemo(() => currentUserId === post.user_id, [currentUserId, post.user_id]);
 
   const fetchComments = useCallback(async () => {
-    // Don't fetch if already loaded and showing
-    if (comments.length > 0 && showComments) {
-      return;
-    }
-    
     setLoadingComments(true);
     try {
       const response = await axios.get(`/api/posts/${post.id}/comments`);
@@ -54,7 +49,7 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
     } finally {
       setLoadingComments(false);
     }
-  }, [post.id, comments.length, showComments]);
+  }, [post.id]);
 
   const handleLike = useCallback(async () => {
     try {
@@ -90,11 +85,12 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
   }, [post.id, onDelete]);
 
   const handleCommentToggle = useCallback(() => {
-    if (!showComments) {
+    if (!showComments && comments.length === 0) {
+      // Fetch comments only if we don't have them cached
       fetchComments();
     }
     setShowComments(!showComments);
-  }, [showComments, fetchComments]);
+  }, [showComments, comments.length, fetchComments]);
 
   const handleAddComment = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();

@@ -196,23 +196,23 @@ router.delete('/:id', authenticate, (req: AuthRequest, res) => {
             db.run('ROLLBACK');
             return res.status(500).json({ error: 'Failed to delete post' });
           }
-        });
-        
-        db.run('DELETE FROM comments WHERE post_id = ?', [postId], (err) => {
-          if (err) {
-            db.run('ROLLBACK');
-            return res.status(500).json({ error: 'Failed to delete post' });
-          }
-        });
-        
-        db.run('DELETE FROM posts WHERE id = ?', [postId], (err) => {
-          if (err) {
-            db.run('ROLLBACK');
-            return res.status(500).json({ error: 'Failed to delete post' });
-          }
           
-          db.run('COMMIT');
-          res.json({ message: 'Post deleted successfully' });
+          db.run('DELETE FROM comments WHERE post_id = ?', [postId], (err) => {
+            if (err) {
+              db.run('ROLLBACK');
+              return res.status(500).json({ error: 'Failed to delete post' });
+            }
+            
+            db.run('DELETE FROM posts WHERE id = ?', [postId], (err) => {
+              if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: 'Failed to delete post' });
+              }
+              
+              db.run('COMMIT');
+              res.json({ message: 'Post deleted successfully' });
+            });
+          });
         });
       });
     }

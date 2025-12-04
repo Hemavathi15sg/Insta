@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import axios from 'axios';
 import Post from '../components/Post';
 import CreatePost from '../components/CreatePost';
@@ -51,12 +51,13 @@ const Feed: React.FC = () => {
     }
   };
 
-  const handlePostDeleted = (postId: number) => {
-    setPosts(posts.filter(post => post.id !== postId));
-  };
+  const handlePostDeleted = useCallback((postId: number) => {
+    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+  }, []);
 
   useEffect(() => {
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -123,4 +124,4 @@ const Feed: React.FC = () => {
   );
 };
 
-export default Feed;
+export default memo(Feed);
