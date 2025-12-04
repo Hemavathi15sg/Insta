@@ -61,26 +61,7 @@ const Feed: React.FC = () => {
 
   useEffect(() => {
     // Fetch posts on initial mount only
-    const loadInitialPosts = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`/api/posts?page=1&limit=20`);
-        
-        if (response.data.posts) {
-          setPosts(response.data.posts);
-          setPagination(response.data.pagination);
-        } else {
-          setPosts(response.data);
-          setPagination(null);
-        }
-      } catch (err) {
-        console.error('Failed to fetch posts', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadInitialPosts();
+    fetchPosts(1);
   }, []); // Empty dependency array is intentional - only run on mount
 
   return (
