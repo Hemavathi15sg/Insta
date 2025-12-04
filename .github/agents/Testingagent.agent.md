@@ -1,6 +1,6 @@
 ---
 description: 'Automated Testing for Follow/Unfollow Feature'
-tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'extensions', 'todos', 'runSubagent', 'runTests']
+tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'Azure MCP/search', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'extensions', 'todos', 'runSubagent', 'runTests']
 ---
 
 
@@ -38,8 +38,8 @@ Tasks:
 
 ## Test Files to Create
 
-- server/src/routes/__tests__/follow.test.ts
-- server/src/repositories/__tests__/followRepository.test.ts
+- server/src/routes/tests/follow.test.ts
+- server/src/repositories/tests/followRepository.test.ts
 - client/cypress/e2e/follow.cy.ts
 
 ## Commands Agent Should Run

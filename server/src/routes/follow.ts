@@ -3,7 +3,6 @@ import { Database } from '../database';
 import { authenticate, AuthRequest } from '../middleware/auth';
 
 const router = express.Router();
-const db = Database.getInstance().getDb();
 
 /**
  * POST /api/users/:id/follow
@@ -12,6 +11,7 @@ const db = Database.getInstance().getDb();
  * @param id - Target user ID
  */
 router.post('/:id/follow', authenticate, (req: AuthRequest, res) => {
+  const db = Database.getInstance().getDb();
   const targetUserId = parseInt(req.params.id, 10);
   const followerId = req.userId;
 
@@ -114,6 +114,7 @@ router.post('/:id/follow', authenticate, (req: AuthRequest, res) => {
  * @param id - Target user ID
  */
 router.delete('/:id/follow', authenticate, (req: AuthRequest, res) => {
+  const db = Database.getInstance().getDb();
   const targetUserId = parseInt(req.params.id, 10);
   const followerId = req.userId;
 
@@ -185,6 +186,7 @@ router.delete('/:id/follow', authenticate, (req: AuthRequest, res) => {
  * @query limit - Items per page (default: 20, max: 100)
  */
 router.get('/:id/followers', (req: AuthRequest, res) => {
+  const db = Database.getInstance().getDb();
   const userId = parseInt(req.params.id, 10);
   const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string, 10) || 20));
@@ -280,6 +282,7 @@ router.get('/:id/followers', (req: AuthRequest, res) => {
  * @query limit - Items per page (default: 20, max: 100)
  */
 router.get('/:id/following', (req: AuthRequest, res) => {
+  const db = Database.getInstance().getDb();
   const userId = parseInt(req.params.id, 10);
   const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
   const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string, 10) || 20));
@@ -375,6 +378,7 @@ router.get('/:id/following', (req: AuthRequest, res) => {
  * @param targetId - Target user ID to check
  */
 router.get('/:id/following-status/:targetId', authenticate, (req: AuthRequest, res) => {
+  const db = Database.getInstance().getDb();
   const userId = parseInt(req.params.id, 10);
   const targetId = parseInt(req.params.targetId, 10);
   const currentUserId = req.userId;

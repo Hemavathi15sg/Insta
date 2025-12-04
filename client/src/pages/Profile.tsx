@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import FollowButton from '../components/FollowButton';
 import FollowersList from '../components/FollowersList';
+import BioModal from '../components/BioModal';
 
 const Profile: React.FC = () => {
   const { userId } = useParams();
   const [user, setUser] = useState<any>(null);
   const [showFollowers, setShowFollowers] = useState(false);
+  const [showBioModal, setShowBioModal] = useState(false);
   const currentUserId = parseInt(localStorage.getItem('userId') || '0');
   const isOwnProfile = currentUserId === parseInt(userId || '0');
 
@@ -36,7 +38,12 @@ const Profile: React.FC = () => {
           />
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{user.username}</h1>
-            <p className="text-gray-600 mb-4">{user.bio || 'No bio yet'}</p>
+            <button
+              onClick={() => setShowBioModal(true)}
+              className="text-gray-600 hover:text-pink-600 transition-colors cursor-pointer mb-4 font-semibold inline-block px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              BIO
+            </button>
             <div className="flex gap-8 items-center flex-wrap">
               <div><span className="font-bold">{user.posts?.length || 0}</span> posts</div>
               <button
@@ -61,6 +68,13 @@ const Profile: React.FC = () => {
         <FollowersList 
           userId={parseInt(userId || '0')}
           onClose={() => setShowFollowers(false)}
+        />
+      )}
+
+      {showBioModal && (
+        <BioModal
+          user={user}
+          onClose={() => setShowBioModal(false)}
         />
       )}
 
