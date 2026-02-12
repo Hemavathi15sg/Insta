@@ -10,6 +10,7 @@ interface CreatePostProps {
 
 const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
   const [caption, setCaption] = useState('');
+  const [tag, setTag] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
     const formData = new FormData();
     formData.append('image', image);
     formData.append('caption', caption);
+    if (tag.trim()) formData.append('tag', tag.trim());
 
     setLoading(true);
     try {
@@ -120,6 +122,20 @@ const CreatePost: React.FC<CreatePostProps> = ({ onClose, onPostCreated }) => {
               rows={4}
             />
             <p className="text-gray-500 text-xs mt-2">{caption.length} characters</p>
+          </div>
+
+          {/* Tag Input Section */}
+          <div className="mb-6">
+            <label className="block mb-3 text-sm font-bold text-gray-700">🏷️ Tag</label>
+            <input
+              type="text"
+              placeholder="Add a tag (optional)"
+              value={tag}
+              onChange={(e) => setTag(e.target.value.slice(0, 20))}
+              maxLength={20}
+              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all duration-200 bg-white font-medium text-sm"
+            />
+            <p className="text-gray-500 text-xs mt-2">{tag.length}/20 characters</p>
           </div>
 
           {/* Submit Button */}
