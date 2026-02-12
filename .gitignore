@@ -35,3 +35,9 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Cypress
+cypress/videos/
+cypress/screenshots/
+client/cypress/videos/
+client/cypress/screenshots/
