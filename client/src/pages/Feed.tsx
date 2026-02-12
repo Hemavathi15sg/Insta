@@ -10,6 +10,7 @@ interface PostType {
   avatar: string;
   image_url: string;
   caption: string;
+  tag?: string;
   likes_count: number;
   created_at: string;
 }

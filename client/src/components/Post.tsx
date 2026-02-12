@@ -21,6 +21,7 @@ interface PostProps {
     avatar: string;
     image_url: string;
     caption: string;
+    tag?: string;
     likes_count: number;
     created_at: string;
   };
@@ -301,6 +302,15 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
             ) : (
               <p className="text-gray-400 mt-2 leading-relaxed text-sm italic">No caption</p>
             )}
+          </div>
+        )}
+
+        {/* Tag Display */}
+        {post.tag && (
+          <div className="mb-4">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md">
+              🏷️ {post.tag}
+            </span>
           </div>
         )}
 

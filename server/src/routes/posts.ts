@@ -13,6 +13,30 @@ const getCaptionService = () => {
   return captionService;
 };
 
+/**
+ * Validates and sanitizes tag input
+ * @param tag - The tag to validate (optional)
+ * @returns Trimmed tag up to 20 characters, or null if not provided
+ * @throws Error if tag is invalid
+ */
+const validateTag = (tag: any): string | null => {
+  if (tag === undefined || tag === null || tag === '') {
+    return null;
+  }
+  
+  const trimmedTag = String(tag).trim();
+  
+  if (trimmedTag === '') {
+    return null;
+  }
+  
+  if (trimmedTag.length > 20) {
+    throw new Error('Tag must be 20 characters or less');
+  }
+  
+  return trimmedTag;
+};
+
 const router = express.Router();
 const db = Database.getInstance().getDb();
 
@@ -69,7 +93,7 @@ router.get('/', (req, res) => {
     if (err) {
       return res.status(500).json({ error: 'Server error' });
     }
-    res.json(posts);
+    res.json(posts || []);
   });
 });
 
@@ -131,19 +155,32 @@ router.post('/generate-caption', captionRateLimiter, authenticate, tempUpload.si
 
 // Create post
 router.post('/', authenticate, upload.single('image'), (req: AuthRequest, res) => {
-  const { caption } = req.body;
+  const { caption, tag } = req.body;
   const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
-  db.run(
-    'INSERT INTO posts (user_id, image_url, caption) VALUES (?, ?, ?)',
-    [req.userId, imageUrl, caption],
-    function(err) {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to create post' });
+  try {
+    const validatedTag = validateTag(tag);
+
+    db.run(
+      'INSERT INTO posts (user_id, image_url, caption, tag) VALUES (?, ?, ?, ?)',
+      [req.userId, imageUrl, caption, validatedTag],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ error: 'Failed to create post' });
+        }
+        res.status(201).json({ 
+          id: this.lastID, 
+          imageUrl, 
+          caption, 
+          tag: validatedTag 
+        });
       }
-      res.status(201).json({ id: this.lastID, imageUrl, caption });
-    }
-  );
+    );
+  } catch (error) {
+    return res.status(400).json({ 
+      error: error instanceof Error ? error.message : 'Invalid tag input' 
+    });
+  }
 });
 
 // Delete post - MUST come BEFORE /:id/like and /:id/comments routes
@@ -174,10 +211,10 @@ router.delete('/:id', authenticate, (req: AuthRequest, res) => {
   );
 });
 
-// Edit caption - Update caption for a post
+// Edit caption - Update caption and/or tag for a post
 router.put('/:id/caption', authenticate, (req: AuthRequest, res) => {
   const postId = req.params.id;
-  const { caption } = req.body;
+  const { caption, tag } = req.body;
 
   // Validate caption input (allow empty string to clear caption)
   if (caption == null) {
@@ -187,46 +224,56 @@ router.put('/:id/caption', authenticate, (req: AuthRequest, res) => {
     });
   }
 
-  // Check if user owns the post
-  db.get(
-    'SELECT * FROM posts WHERE id = ? AND user_id = ?',
-    [postId, req.userId],
-    (err, post) => {
-      if (err) {
-        return res.status(500).json({ 
-          success: false,
-          error: 'Server error' 
-        });
-      }
-      
-      if (!post) {
-        return res.status(404).json({ 
-          success: false,
-          error: 'Post not found or unauthorized' 
-        });
-      }
+  try {
+    const validatedTag = validateTag(tag);
 
-      // Update the caption
-      db.run(
-        'UPDATE posts SET caption = ? WHERE id = ?',
-        [caption, postId],
-        (err) => {
-          if (err) {
-            console.error('Error updating caption:', err);
-            return res.status(500).json({ 
-              success: false,
-              error: 'Server error' 
-            });
-          }
-          res.json({ 
-            success: true,
-            message: 'Caption updated successfully',
-            caption 
+    // Check if user owns the post
+    db.get(
+      'SELECT * FROM posts WHERE id = ? AND user_id = ?',
+      [postId, req.userId],
+      (err, post) => {
+        if (err) {
+          return res.status(500).json({ 
+            success: false,
+            error: 'Server error' 
           });
         }
-      );
-    }
-  );
+        
+        if (!post) {
+          return res.status(404).json({ 
+            success: false,
+            error: 'Post not found or unauthorized' 
+          });
+        }
+
+        // Update the caption and tag
+        db.run(
+          'UPDATE posts SET caption = ?, tag = ? WHERE id = ?',
+          [caption, validatedTag, postId],
+          (err) => {
+            if (err) {
+              console.error('Error updating caption:', err);
+              return res.status(500).json({ 
+                success: false,
+                error: 'Server error' 
+              });
+            }
+            res.json({ 
+              success: true,
+              message: 'Caption updated successfully',
+              caption,
+              tag: validatedTag 
+            });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    return res.status(400).json({ 
+      success: false,
+      error: error instanceof Error ? error.message : 'Invalid input' 
+    });
+  }
 });
 
 // Delete caption - Remove caption from a post
@@ -252,10 +299,10 @@ router.delete('/:id/caption', authenticate, (req: AuthRequest, res) => {
         });
       }
 
-      // Set caption to empty string
+      // Set caption to empty string and clear tag
       db.run(
-        'UPDATE posts SET caption = ? WHERE id = ?',
-        ['', postId],
+        'UPDATE posts SET caption = ?, tag = ? WHERE id = ?',
+        ['', null, postId],
         (err) => {
           if (err) {
             console.error('Error deleting caption:', err);
@@ -266,7 +313,8 @@ router.delete('/:id/caption', authenticate, (req: AuthRequest, res) => {
           }
           res.json({ 
             success: true,
-            message: 'Caption deleted successfully'
+            message: 'Caption deleted successfully',
+            tag: null
           });
         }
       );

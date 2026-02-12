@@ -81,31 +81,31 @@ export class Database {
    */
   private runMigrations(): void {
     this.db.serialize(() => {
-      // Check if ai_caption column exists in posts table
+      // Check if tag column exists in posts table
       this.db.all(`PRAGMA table_info(posts)`, [], (err, columns: any[]) => {
         if (err) {
           console.error('Error checking posts table schema:', err);
           return;
         }
 
-        // Check if ai_caption column already exists
-        /*const aiCaptionExists = columns.some(col => col.name === 'ai_caption');
+        // Check if tag column already exists
+        const tagExists = columns.some(col => col.name === 'tag');
 
-        if (!aiCaptionExists) {
-          // Add ai_caption column if it doesn't exist
+        if (!tagExists) {
+          // Add tag column if it doesn't exist
           this.db.run(
-            `ALTER TABLE posts ADD COLUMN ai_caption TEXT DEFAULT NULL`,
+            `ALTER TABLE posts ADD COLUMN tag TEXT DEFAULT NULL`,
             (err) => {
               if (err) {
-                console.error('Error adding ai_caption column:', err);
+                console.error('Error adding tag column:', err);
               } else {
-                console.log('Successfully added ai_caption column to posts table');
+                console.log('Successfully added tag column to posts table');
               }
             }
           );
         } else {
-          console.log('ai_caption column already exists in posts table');
-        }*/
+          console.log('tag column already exists in posts table');
+        }
       });
     });
   }
