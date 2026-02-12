@@ -7,6 +7,7 @@ interface Post {
   userAvatar: string;
   image: string;
   caption: string;
+  tag?: string | null;
   likes: number;
   comments: number;
 }
@@ -62,6 +63,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
       </div>
       <div className="post-content">
         <p className="caption">{post.caption}</p>
+        {post.tag && (
+          <span className="inline-block mt-2 px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+            🏷️ {post.tag}
+          </span>
+        )}
         <div className="post-stats">
           <span>{post.likes} likes</span>
           <span>{post.comments} comments</span>

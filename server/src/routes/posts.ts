@@ -4,6 +4,7 @@ import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { Database } from '../database';
 import { authenticate, AuthRequest } from '../middleware/auth';
+import { validateTag } from '../utils/validation';
 
 let captionService: any;
 const getCaptionService = () => {
@@ -131,17 +132,48 @@ router.post('/generate-caption', captionRateLimiter, authenticate, tempUpload.si
 
 // Create post
 router.post('/', authenticate, upload.single('image'), (req: AuthRequest, res) => {
-  const { caption } = req.body;
+  const { caption, tag } = req.body;
   const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
+  const validatedTag = validateTag(tag);
 
   db.run(
-    'INSERT INTO posts (user_id, image_url, caption) VALUES (?, ?, ?)',
-    [req.userId, imageUrl, caption],
+    'INSERT INTO posts (user_id, image_url, caption, tag) VALUES (?, ?, ?, ?)',
+    [req.userId, imageUrl, caption, validatedTag],
     function(err) {
       if (err) {
         return res.status(500).json({ error: 'Failed to create post' });
       }
-      res.status(201).json({ id: this.lastID, imageUrl, caption });
+      res.status(201).json({ id: this.lastID, imageUrl, caption, tag: validatedTag });
+    }
+  );
+});
+
+// Update post
+router.put('/:id', authenticate, (req: AuthRequest, res) => {
+  const postId = req.params.id;
+  const { caption, tag } = req.body;
+  const validatedTag = validateTag(tag);
+
+  // Check if user owns the post
+  db.get(
+    'SELECT * FROM posts WHERE id = ? AND user_id = ?',
+    [postId, req.userId],
+    (err, post) => {
+      if (err || !post) {
+        return res.status(404).json({ error: 'Post not found or unauthorized' });
+      }
+
+      // Update the post
+      db.run(
+        'UPDATE posts SET caption = ?, tag = ? WHERE id = ?',
+        [caption, validatedTag, postId],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Failed to update post' });
+          }
+          res.json({ id: postId, caption, tag: validatedTag });
+        }
+      );
     }
   );
 });

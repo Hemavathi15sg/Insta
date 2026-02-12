@@ -21,6 +21,7 @@ interface PostProps {
     avatar: string;
     image_url: string;
     caption: string;
+    tag?: string | null;
     likes_count: number;
     created_at: string;
   };
@@ -184,6 +185,13 @@ const Post: React.FC<PostProps> = ({ post, onDelete }) => {
             <span className="font-bold text-purple-700">{post.username}</span>
             <p className="text-gray-800 mt-2 leading-relaxed text-sm break-words">{post.caption}</p>
           </div>
+        )}
+
+        {/* Tag Pill */}
+        {post.tag && (
+          <span className="inline-block mb-4 px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">
+            🏷️ {post.tag}
+          </span>
         )}
 
         {/* View Comments Button */}
